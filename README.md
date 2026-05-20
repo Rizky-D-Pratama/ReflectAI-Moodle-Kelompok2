@@ -1,48 +1,132 @@
-# Moodle
+# ReflectAI: Plugin Refleksi Pembelajaran Otomatis Berbasis Generative AI untuk Moodle
 
-<p align="center"><a href="https://moodle.org" target="_blank" title="Moodle Website">
-  <img src="https://raw.githubusercontent.com/moodle/moodle/main/.github/moodlelogo.svg" alt="The Moodle Logo">
-</a></p>
+ReflectAI adalah plugin lokal Moodle yang secara otomatis menghasilkan refleksi pembelajaran berbasis AI setiap kali siswa mengumpulkan tugas (assignment). Refleksi ditampilkan langsung di halaman assignment siswa tanpa intervensi guru, serta dapat dipantau dan diberi catatan oleh guru melalui halaman monitoring khusus.
 
-[Moodle][1] is the World's Open Source Learning Platform, widely used around the world by countless universities, schools, companies, and all manner of organisations and individuals.
+## Fitur Utama
 
-Moodle is designed to allow educators, administrators and learners to create personalised learning environments with a single robust, secure and integrated system.
+- Refleksi otomatis saat siswa mengumpulkan tugas
+- Panel status real-time: belum submit, sedang diproses, selesai, atau error
+- Auto-refresh panel — memperbarui diri otomatis saat AI selesai memproses, tanpa reload manual
+- Halaman monitoring guru untuk memantau semua hasil refleksi siswa per assignment
+- Catatan guru — guru dapat menambahkan komentar yang ditampilkan di panel siswa
+- Deteksi relevansi submission terhadap deskripsi tugas
+- Mendukung berbagai format file: PDF (teks & hybrid), DOCX (teks & gambar), file teks, dan gambar
+- Penanganan keterbatasan visual secara jujur — jika gambar tidak dapat diproses, AI menyebutkan keterbatasannya
 
-## Documentation
+## Persyaratan
 
-- Read our [User documentation][3]
-- Discover our [developer documentation][5]
-- Take a look at our [demo site][4]
+- Moodle **5.1.3** atau lebih baru
+- PHP **8.1** atau lebih baru dengan ekstensi: `curl`, `zip`, `dom`, `libxml`
+- [Ollama](https://ollama.com) berjalan secara lokal dengan model `gemma3`
+- Library `smalot/pdfparser` terinstall via Composer untuk ekstraksi teks PDF
 
-## Community
+## Instalasi Plugin
 
-[moodle.org][1] is the central hub for the Moodle Community, with spaces for educators, administrators and developers to meet and work together.
+1. Salin folder `local/ai_reflection` ke direktori `local/` di instalasi Moodle kamu
+2. Login sebagai admin, buka **Site Administration → Notifications**
+3. Ikuti instruksi di layar untuk menyelesaikan upgrade database
 
-You may also be interested in:
+## Setup Ollama
 
-- attending a [Moodle Moot][6]
-- our regular series of [developer meetings][7]
-- the [Moodle User Association][8]
+1. Install Ollama dari https://ollama.com
+2. Pull model yang digunakan:
+```
+ollama pull gemma3
+```
+3. Pastikan Ollama berjalan di `http://localhost:11434`
 
-## Installation and hosting
+## Setup Composer & PDF Parser
 
-Moodle is Free, and Open Source software. You can easily [download Moodle][9] and run it on your own web server, however you may prefer to work with one of our experienced [Moodle Partners][10].
+Jalankan perintah berikut di root folder Moodle:
+```
+composer require smalot/pdfparser
+```
 
-Moodle also offers hosting through both [MoodleCloud][11], and our [partner network][10].
+## Konfigurasi Cron
 
-## License
+Plugin ini menggunakan sistem adhoc task Moodle untuk memproses refleksi di background. Moodle cron harus berjalan agar refleksi diproses secara otomatis.
 
-Moodle is provided freely as open source software, under version 3 of the GNU General Public License. For more information on our license see
+### Hanya menjalankan task AI Reflection (untuk development/testing)
 
-[1]: https://moodle.org
-[2]: https://moodle.com
-[3]: https://docs.moodle.org/
-[4]: https://sandbox.moodledemo.net/
-[5]: https://moodledev.io
-[6]: https://moodle.com/events/mootglobal/
-[7]: https://moodledev.io/general/community/meetings
-[8]: https://moodleassociation.org/
-[9]: https://download.moodle.org
-[10]: https://moodle.com/partners
-[11]: https://moodle.com/cloud
-[12]: https://moodledev.io/general/license
+**Windows (PowerShell)**
+```
+while ($true) { & "C:\xampp\php\php.exe" "C:\xampp\htdocs\moodle\admin\cli\adhoc_task.php" --classname="local_ai_reflection\task\process_submission_task" --force; Start-Sleep 10 }
+```
+
+**Linux / Mac (Terminal)**
+```
+while true; do php /path/to/moodle/admin/cli/adhoc_task.php --classname="local_ai_reflection\task\process_submission_task" --force; sleep 10; done
+```
+
+### Menjalankan semua cron Moodle (untuk production)
+
+**Server Linux (cron job — jalankan setiap 1 menit)**
+```
+* * * * * /usr/bin/php /path/to/moodle/admin/cli/cron.php > /dev/null 2>&1
+```
+
+**Windows (PowerShell)**
+```
+while ($true) { & "C:\xampp\php\php.exe" "C:\xampp\htdocs\moodle\admin\cli\cron.php"; Start-Sleep 30 }
+```
+
+**Linux / Mac (Terminal)**
+```
+while true; do php /path/to/moodle/admin/cli/cron.php; sleep 30; done
+```
+
+> **Catatan:** Tanpa cron yang berjalan, task analisis AI akan masuk antrian tetapi tidak dieksekusi secara otomatis.
+
+## Cara Kerja
+
+```
+Siswa submit tugas
+       ↓
+Event assessable_submitted terpicu
+       ↓
+Observer membuat record dengan status "processing" di database
+       ↓
+Adhoc task di-queue
+       ↓
+Moodle Cron menjalankan task
+       ↓
+Payload diekstrak (teks, gambar, konteks assignment)
+       ↓
+Payload dikirim ke Ollama (model gemma3)
+       ↓
+Hasil refleksi disimpan ke database
+       ↓
+Panel siswa otomatis menampilkan hasil refleksi
+```
+
+## Hak Akses (Capabilities)
+
+| Capability | Role Default | Keterangan |
+|---|---|---|
+| `local/ai_reflection:viewresults` | Manager, Teacher | Akses halaman monitoring guru |
+| `local/ai_reflection:addteachernote` | Manager, Teacher | Menambah catatan guru pada refleksi siswa |
+
+## Format File yang Didukung
+
+| Format | Dukungan |
+|---|---|
+| PDF (berbasis teks) | Teks diekstrak penuh |
+| PDF (hybrid teks + gambar) | Teks diekstrak, gambar disebutkan sebagai keterbatasan |
+| PDF (scan/gambar saja) | Keterbatasan visual dilaporkan |
+| DOCX (teks) | Teks diekstrak penuh |
+| DOCX (teks + gambar) | Teks diekstrak, gambar dikirim ke AI jika model mendukung vision |
+| Gambar (JPG, PNG, dll) | Dikirim ke AI jika model mendukung vision |
+| TXT, MD, CSV, JSON, XML | Teks diekstrak penuh |
+
+## Keterbatasan
+
+- Membutuhkan Ollama yang berjalan di server yang sama dengan Moodle
+- Kualitas refleksi bergantung pada kemampuan model AI yang digunakan (`gemma3` secara default)
+- Analisis gambar/visual membutuhkan model yang mendukung multimodal (vision); dapat timeout pada perangkat dengan resource terbatas
+- Pemrosesan refleksi tidak real-time — bergantung pada interval cron yang dikonfigurasi
+- Hanya mendukung Moodle 5.1 ke atas (menggunakan Hook API yang diperkenalkan di Moodle 5.1)
+- Setiap submission menghasilkan satu refleksi; resubmit akan menggantikan refleksi sebelumnya
+
+## Lisensi
+
+Plugin ini dilisensikan di bawah [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html), sesuai dengan ketentuan lisensi Moodle.
