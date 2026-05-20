@@ -6,12 +6,10 @@ ReflectAI adalah plugin lokal Moodle yang secara otomatis menghasilkan refleksi 
 
 - Refleksi otomatis saat siswa mengumpulkan tugas
 - Panel status real-time: belum submit, sedang diproses, selesai, atau error
-- Auto-refresh panel — memperbarui diri otomatis saat AI selesai memproses, tanpa reload manual
 - Halaman monitoring guru untuk memantau semua hasil refleksi siswa per assignment
 - Catatan guru — guru dapat menambahkan komentar yang ditampilkan di panel siswa
 - Deteksi relevansi submission terhadap deskripsi tugas
-- Mendukung berbagai format file: PDF (teks & hybrid), DOCX (teks & gambar), file teks, dan gambar
-- Penanganan keterbatasan visual secara jujur — jika gambar tidak dapat diproses, AI menyebutkan keterbatasannya
+- Mendukung berbagai format file: PDF, DOCX, file teks, dan gambar
 
 ## Persyaratan
 
@@ -23,7 +21,7 @@ ReflectAI adalah plugin lokal Moodle yang secara otomatis menghasilkan refleksi 
 ## Instalasi Plugin
 
 1. Salin folder `local/ai_reflection` ke direktori `local/` di instalasi Moodle kamu
-2. Login sebagai admin, buka **Site Administration → Notifications**
+2. Login sebagai admin, jalankan upgrade
 3. Ikuti instruksi di layar untuk menyelesaikan upgrade database
 
 ## Setup Ollama
@@ -46,7 +44,7 @@ composer require smalot/pdfparser
 
 Plugin ini menggunakan sistem adhoc task Moodle untuk memproses refleksi di background. Moodle cron harus berjalan agar refleksi diproses secara otomatis.
 
-### Hanya menjalankan task AI Reflection (untuk development/testing)
+### Hanya menjalankan task AI Reflection
 
 **Windows (PowerShell)**
 ```
@@ -58,7 +56,7 @@ while ($true) { & "C:\xampp\php\php.exe" "C:\xampp\htdocs\moodle\admin\cli\adhoc
 while true; do php /path/to/moodle/admin/cli/adhoc_task.php --classname="local_ai_reflection\task\process_submission_task" --force; sleep 10; done
 ```
 
-### Menjalankan semua cron Moodle (untuk production)
+### Menjalankan semua cron Moodle
 
 **Server Linux (cron job — jalankan setiap 1 menit)**
 ```
@@ -99,19 +97,12 @@ Hasil refleksi disimpan ke database
 Panel siswa otomatis menampilkan hasil refleksi
 ```
 
-## Hak Akses (Capabilities)
-
-| Capability | Role Default | Keterangan |
-|---|---|---|
-| `local/ai_reflection:viewresults` | Manager, Teacher | Akses halaman monitoring guru |
-| `local/ai_reflection:addteachernote` | Manager, Teacher | Menambah catatan guru pada refleksi siswa |
-
 ## Format File yang Didukung
 
 | Format | Dukungan |
 |---|---|
 | PDF (berbasis teks) | Teks diekstrak penuh |
-| PDF (hybrid teks + gambar) | Teks diekstrak, gambar disebutkan sebagai keterbatasan |
+| PDF (teks + gambar) | Teks diekstrak, gambar disebutkan sebagai keterbatasan |
 | PDF (scan/gambar saja) | Keterbatasan visual dilaporkan |
 | DOCX (teks) | Teks diekstrak penuh |
 | DOCX (teks + gambar) | Teks diekstrak, gambar dikirim ke AI jika model mendukung vision |
