@@ -1,0 +1,116 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template aiprovider_datacurso/user_token_limits
+
+    TODO describe template user_token_limits
+
+    Example context (json):
+    {
+        "addurl": "https://example.com/ai/provider/datacurso/admin/user_token_limit_edit.php",
+        "searchaction": "https://example.com/ai/provider/datacurso/admin/user_token_limits.php",
+        "searchvalue": "",
+        "sort": "email",
+        "dir": "ASC",
+        "perpage": 20,
+        "columns": [
+            {"key": "fullname", "label": "Full name", "sorturl": "https://example.com?..."},
+            {"key": "email", "label": "Email", "sorturl": "https://example.com?..."},
+            {"key": "tokenlimit", "label": "Limit", "sorturl": "https://example.com?..."},
+            {"key": "tokensused", "label": "Used", "sorturl": "https://example.com?..."},
+            {"key": "actions", "label": "Actions"}
+        ],
+        "rows": [
+            {"id": 1, "fullname": "Jane Doe", "email": "jane@example.com", "tokenlimit": 1000, "tokensused": 120, "editurl": "https://example.com/..."}
+        ],
+        "empty": false,
+        "nothingtodisplay": "Nothing to display",
+        "pagingbar": "<div class=\"paging\">...</div>"
+    }
+}}
+<div class="aiprovider-datacurso-userlimits" data-region="aiprovider-datacurso-userlimits">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{addurl}}" class="btn btn-primary" data-action="openadd">{{#str}} usertokenlimit_add, aiprovider_datacurso {{/str}}</a>
+        <form method="get" action="{{searchaction}}" class="form-inline ml-2">
+            <label for="id_search" class="sr-only">{{#str}} search {{/str}}</label>
+            <input type="text" id="id_search" name="search" value="{{searchvalue}}" class="form-control" placeholder="{{#str}} search {{/str}}">
+            <input type="hidden" name="sort" value="{{sort}}">
+            <input type="hidden" name="dir" value="{{dir}}">
+            <input type="hidden" name="perpage" value="{{perpage}}">
+            <button type="submit" class="btn btn-secondary ml-2">{{#str}} search {{/str}}</button>
+        </form>
+    </div>
+
+    <table class="generaltable">
+        <thead>
+            <tr>
+                {{#columns}}
+                    <th>
+                        {{#sorturl}}
+                            <a href="{{sorturl}}">
+                                {{label}}
+                                {{#current}}
+                                    {{#dirasc}}
+                                        <i class="icon fa fa-arrow-up-short-wide fa-fw" aria-hidden="true"></i>
+                                    {{/dirasc}}
+                                    {{#dirdesc}}
+                                        <i class="icon fa fa-arrow-down-wide-short fa-fw" aria-hidden="true"></i>
+                                    {{/dirdesc}}
+                                {{/current}}
+                            </a>
+                        {{/sorturl}}
+                        {{^sorturl}}{{label}}{{/sorturl}}
+                    </th>
+                {{/columns}}
+            </tr>
+        </thead>
+        <tbody>
+            {{#empty}}
+                <tr><td colspan="5">{{nothingtodisplay}}</td></tr>
+            {{/empty}}
+            {{^empty}}
+                {{#rows}}
+                    <tr>
+                        <td>{{fullname}}</td>
+                        <td>{{email}}</td>
+                        <td>{{tokenlimit}}</td>
+                        <td>
+                            <span>{{tokensused}}</span>
+                            {{#canreset}}
+                            <a href="#" class="action-icon ml-1" data-action="resetusage" data-id="{{id}}" data-username="{{fullname}}" title="{{#str}} usertokenlimit_reset_usage, aiprovider_datacurso {{/str}}">
+                                {{#pix}} i/reload, core, {{#str}} usertokenlimit_reset_usage, aiprovider_datacurso {{/str}} {{/pix}}
+                            </a>
+                            {{/canreset}}
+                        </td>
+                        <td>
+                            <a href="{{editurl}}" class="action-icon" data-action="openedit" data-id="{{id}}" data-username="{{fullname}}" title="{{#str}} edit {{/str}}">
+                                {{#pix}} t/edit, core, {{#str}} edit {{/str}} {{/pix}}
+                            </a>
+                            <a href="#" class="action-icon ml-1" data-action="delete" data-id="{{id}}" data-username="{{fullname}}" title="{{#str}} delete {{/str}}">
+                                {{#pix}} t/delete, core, {{#str}} delete {{/str}} {{/pix}}
+                            </a>
+                        </td>
+                    </tr>
+                {{/rows}}
+            {{/empty}}
+        </tbody>
+    </table>
+
+    <div class="paging">
+        {{{pagingbar}}}
+    </div>
+</div>

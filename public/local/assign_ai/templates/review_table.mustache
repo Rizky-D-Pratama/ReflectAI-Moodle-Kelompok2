@@ -1,0 +1,106 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_assign_ai/review_table
+    Template to review AI responses.
+
+    Example context (json):
+    {
+      "fullname": "Maria Lopez",
+      "email": "maria.lopez@example.com",
+      "status": "Not submitted",
+      "lastmodified": "-",
+      "files": "",
+      "aistatus": "N/A",
+      "actions": "<span class='text-muted'>No actions</span>"
+    }
+}}
+
+<table class="table table-bordered table-striped w-100 text-center mb-0">
+    <thead>
+        <tr>
+            <th>{{#str}} fullname, local_assign_ai {{/str}}</th>
+            <th>{{#str}} email, local_assign_ai {{/str}}</th>
+            <th>{{#str}} status, local_assign_ai {{/str}}</th>
+            <th>{{#str}} lastmodified, local_assign_ai {{/str}}</th>
+            <th>{{#str}} submittedfiles, local_assign_ai {{/str}}</th>
+            <th>{{#str}} grade, local_assign_ai {{/str}}</th>
+            <th>{{#str}} aistatus, local_assign_ai {{/str}}</th>
+            <th>{{#str}} actions, local_assign_ai {{/str}}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#rows}}
+        <tr class="{{#ispending}}js-row-pending{{/ispending}} {{#inprogress}}js-row-inprogress{{/inprogress}} {{#isqueued}}js-row-queued{{/isqueued}}" data-userid="{{userid}}" data-cmid="{{cmid}}" data-courseid="{{courseid}}" data-pendingid="{{pendingid}}" data-status="{{aistatus}}">
+            <td>{{fullname}}</td>
+            <td>{{email}}</td>
+            <td>{{status}}</td>
+            <td>{{lastmodified}}</td>
+            <td>
+                {{#files}}
+                    <a href="{{url}}">{{name}}</a>
+                {{/files}}
+                {{^files}}
+                {{/files}}
+            </td>
+            <td class="js-grade-cell">{{grade}}</td>
+            <td>
+                <span class="{{statebadgeclass}} js-state-badge">{{statebadge}}</span>
+                <div class="text-muted small js-state-hint">{{statehint}}</div>
+                {{#inprogress}}
+                    <div class="small text-warning js-progress-indicator">
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    </div>
+                {{/inprogress}}
+            </td>
+            <td>
+                <div class="local_assign_ai_action-buttons">
+                    <a class="btn btn-primary btn-sm text-nowrap js-btn-grade {{#inprogress}}disabled{{/inprogress}} {{#isqueued}}disabled{{/isqueued}}"
+                       href="{{graderurl}}"
+                       {{#inprogress}}aria-disabled="true" tabindex="-1"{{/inprogress}}
+                       {{#isqueued}}aria-disabled="true" tabindex="-1"{{/isqueued}}>
+                        {{#str}} qualify, local_assign_ai {{/str}}
+                    </a>
+                    {{#showviewdetails}}
+                    <button class="btn btn-success btn-sm text-nowrap view-details js-btn-details"
+                        data-courseid="{{courseid}}"
+                        data-cmid="{{cmid}}"
+                        data-userid="{{userid}}"
+                        data-showapprovebuttons="{{showapprovebuttons}}" {{#inprogress}}disabled{{/inprogress}}>
+                        {{#str}} viewdetails, local_assign_ai {{/str}}
+                    </button>
+                    {{/showviewdetails}}
+                    {{^canapproveai}}
+                    <button class="btn btn-warning btn-sm text-nowrap js-review-ai js-btn-review"
+                        type="button"
+                        data-cmid="{{cmid}}"
+                        data-userid="{{userid}}"
+                        data-pendingid="{{pendingid}}" {{#inprogress}}disabled{{/inprogress}} {{#isqueued}}disabled{{/isqueued}}>
+                        {{#str}} review, local_assign_ai {{/str}}
+                    </button>
+                    {{/canapproveai}}
+                </div>
+            </td>
+        </tr>
+        {{/rows}}
+        {{^rows}}
+        <tr>
+            <td colspan="8" class="text-center">{{#str}} norecords, local_assign_ai {{/str}}</td>
+        </tr>
+        {{/rows}}
+    </tbody>
+</table>

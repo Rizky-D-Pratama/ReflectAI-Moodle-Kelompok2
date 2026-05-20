@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/ai_reflection/db" VERSION="2026051804" COMMENT="Create table to store extracted submission payloads">
+  <TABLES>
+    <!-- Tabel Payload-->
+    <TABLE NAME="local_ai_reflection_payload" COMMENT="Payload for AI Reflection">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="assignmentid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="submissionid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="payloadjson" TYPE="text" LENGTH="medium" NOTNULL="true"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <!-- Tabel Hasil -->
+    <TABLE NAME="local_ai_reflection_result" COMMENT="Stored AI reflection results">
+    <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="payloadid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="assignmentid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="submissionid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="done"/>
+        <FIELD NAME="analysismode" TYPE="char" LENGTH="64" NOTNULL="true" DEFAULT="text"/>
+        <FIELD NAME="cananalyze" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="visionstatus" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT=""/>
+        <FIELD NAME="needsseparatehandling" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="imagecount" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="reflection" TYPE="text" LENGTH="medium" NOTNULL="false"/>
+        <FIELD NAME="strengths" TYPE="text" LENGTH="medium" NOTNULL="false"/>
+        <FIELD NAME="improvements" TYPE="text" LENGTH="medium" NOTNULL="false"/>
+        <FIELD NAME="reason" TYPE="text" LENGTH="medium" NOTNULL="false"/>
+        <FIELD NAME="prompt" TYPE="text" LENGTH="medium" NOTNULL="false"/>
+        <FIELD NAME="responsejson" TYPE="text" LENGTH="medium" NOTNULL="false"/>
+        <FIELD NAME="teachernote" TYPE="text" LENGTH="medium" NOTNULL="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+    </FIELDS>
+    <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="submissionid_uix" TYPE="unique" FIELDS="submissionid"/>
+    </KEYS>
+    <INDEXES>
+        <INDEX NAME="assignmentid_ix" UNIQUE="false" FIELDS="assignmentid"/>
+        <INDEX NAME="userid_ix" UNIQUE="false" FIELDS="userid"/>
+    </INDEXES>
+</TABLE>
+  </TABLES>
+</XMLDB>

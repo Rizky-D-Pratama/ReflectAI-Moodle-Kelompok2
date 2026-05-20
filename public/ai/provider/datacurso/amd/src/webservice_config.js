@@ -1,0 +1,233 @@
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * AMD module to handle the Webservice configuration actions for Datacurso.
+ * It performs setup, token regeneration, and registration calls and
+ * displays progress via UI notifications and a simple log list.
+ *
+ * @module      aiprovider_datacurso/webservice_config
+ * @copyright   2025 Wilber Narvaez <wilber@buendata.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+import Notification from "core/notification";
+import { get_string as getString } from "core/str";
+import Templates from "core/templates";
+import {
+  webserviceSetup,
+  webserviceRegenerateToken,
+  webserviceGetStatus,
+} from "aiprovider_datacurso/repository";
+
+const LOG_REGION_SELECTOR =
+  '[data-region="aiprovider_datacurso/webservice-log"]';
+const logEntries = [];
+
+/**
+ * Initialize the webservice configuration.
+ */
+export function init() {
+  const root = document.querySelector(
+    '[data-region="aiprovider_datacurso/webservice-root"]'
+  );
+  if (!root) {
+    return;
+  }
+  bindHandlers(root);
+}
+
+/**
+ * Bind action buttons handlers inside provided root.
+ * @param {HTMLElement} root
+ */
+function bindHandlers(root) {
+  if (!root) {
+    return;
+  }
+  const btnSetup = root.querySelector(
+    '[data-region="aiprovider_datacurso/webservice-btn-setup"]'
+  );
+  const btnRetry = root.querySelector(
+    '[data-region="aiprovider_datacurso/webservice-btn-retry"]'
+  );
+  const btnRegenerate = root.querySelector(
+    '[data-region="aiprovider_datacurso/webservice-btn-regenerate"]'
+  );
+  if (btnSetup) {
+    btnSetup.addEventListener("click", setup);
+  }
+  if (btnRetry) {
+    btnRetry.addEventListener("click", retry);
+  }
+  if (btnRegenerate) {
+    btnRegenerate.addEventListener("click", regenerate);
+  }
+}
+
+/**
+ * Setup the webservice for Datacurso.
+ */
+async function setup() {
+  try {
+    const message = await getString('ws_step_setup', 'aiprovider_datacurso');
+    log(message);
+    const res = await webserviceSetup();
+    if (res.messages && Array.isArray(res.messages)) {
+      res.messages.forEach((m) => log(m));
+    }
+    await refreshStatus();
+    Notification.addNotification({
+      message: "Done: setup",
+      type: "success",
+    });
+  } catch (e) {
+    Notification.exception(e);
+    log("Error: " + (e.message || e), "error");
+  }
+}
+
+/**
+ * Retry the webservice setup for Datacurso.
+ */
+async function retry() {
+  try {
+    const message = await getString('ws_step_token_retry', 'aiprovider_datacurso');
+    log(message);
+    const res = await webserviceSetup();
+    res.messages.forEach((m) => log(m));
+    await refreshStatus();
+    Notification.addNotification({
+      message: "Done: retry",
+      type: "success",
+    });
+  } catch (e) {
+    Notification.exception(e);
+    log("Error: " + (e.message || e), "error");
+  }
+}
+
+/**
+ * Regenerate the webservice token for Datacurso.
+ */
+async function regenerate() {
+  try {
+    const message = await getString('ws_step_token_regenerating', 'aiprovider_datacurso');
+    log(message);
+    const res = await webserviceRegenerateToken();
+    res.messages.forEach((m) => log(m));
+    await refreshStatus();
+    Notification.addNotification({
+      message: "Done: regenerate",
+      type: "success",
+    });
+  } catch (e) {
+    Notification.exception(e);
+    log("Error: " + (e.message || e), "error");
+  }
+}
+
+/**
+ * Log a message to the webservice log.
+ *
+ * @param {string} msg The message to log.
+ * @param {string} type The type of the message.
+ */
+function log(msg, type = "info") {
+  logEntries.push({ msg, type });
+  appendLogEntry({ msg, type });
+}
+
+/**
+ * Append a single entry to the rendered log when available.
+ *
+ * @param {{msg: string, type: string}} entry
+ */
+function appendLogEntry(entry) {
+  const list = document.querySelector(LOG_REGION_SELECTOR);
+  if (!list) {
+    return;
+  }
+  list.appendChild(createLogItem(entry));
+}
+
+/**
+ * Render all known log entries inside the provided root.
+ *
+ * @param {HTMLElement} root
+ */
+function renderLogHistory(root) {
+  if (!root) {
+    return;
+  }
+  const list = root.querySelector(LOG_REGION_SELECTOR);
+  if (!list) {
+    return;
+  }
+  list.innerHTML = "";
+  logEntries.forEach((entry) => {
+    list.appendChild(createLogItem(entry));
+  });
+}
+
+/**
+ * Build a log list item element.
+ *
+ * @param {{msg: string, type: string}} entry
+ * @returns {HTMLLIElement}
+ */
+function createLogItem(entry) {
+  const li = document.createElement("li");
+  li.textContent = entry.msg;
+  li.classList.add("mb-1");
+  if (entry.type === "success") {
+    li.classList.add("text-success");
+  } else if (entry.type === "error") {
+    li.classList.add("text-danger");
+  } else {
+    li.classList.add("text-muted");
+  }
+  return li;
+}
+
+/**
+ * Refresh UI from current status via AJAX without page reload.
+ * @returns {Promise<void>}
+ */
+async function refreshStatus() {
+  try {
+    const status = await webserviceGetStatus();
+    await renderAll(status);
+  } catch (e) {
+    // Silent fail to avoid blocking UI, but log for visibility.
+    log("Status refresh error: " + (e.message || e), "error");
+  }
+}
+
+/**
+ * Render full template with latest status and rebind handlers.
+ * @param {Object} status
+ */
+async function renderAll(status) {
+  const root = document.querySelector('[data-region="aiprovider_datacurso/webservice-root"]');
+  if (!root) {
+    return;
+  }
+  const render = await Templates.renderForPromise('aiprovider_datacurso/webservice_config', status);
+  await Templates.replaceNodeContents(root, render.html, render.js);
+  const newRoot = document.querySelector('[data-region="aiprovider_datacurso/webservice-root"]');
+  renderLogHistory(newRoot);
+  bindHandlers(newRoot);
+}

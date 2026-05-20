@@ -1,0 +1,55 @@
+<div id="local-ai-reflection-panel-wrapper" class="mt-4 mb-4">
+    <div class="card border-primary shadow-sm">
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+            <h5 class="mb-0"><i class="fa fa-magic mr-2"></i> AI Reflection</h5>
+        </div>
+        <div class="card-body bg-light">
+
+            {{#state_no_submission}}
+            <div class="text-center py-3">
+                <i class="fa fa-inbox fa-2x text-muted mb-3 d-block"></i>
+                <p class="text-muted mb-0">Submit tugasmu terlebih dahulu untuk mendapatkan AI Reflection.</p>
+            </div>
+            {{/state_no_submission}}
+
+            {{#state_processing}}
+            <div id="ai-reflection-state-processing" class="text-center py-3">
+                <i class="fa fa-spinner fa-spin fa-2x text-primary mb-3 d-block"></i>
+                <p class="text-muted mb-0">AI sedang menganalisis tugasmu, harap tunggu beberapa saat...</p>
+            </div>
+            {{/state_processing}}
+
+            {{#state_done}}
+            <div class="mb-4">
+                <h6 class="font-weight-bold text-primary"><i class="fa fa-comment-dots"></i> Refleksi Tugas Anda:</h6>
+                <div class="p-3 bg-white rounded border">{{{reflection}}}</div>
+            </div>
+
+            {{#strengths}}
+            <div class="mb-4">
+                <h6 class="font-weight-bold text-success"><i class="fa fa-thumbs-up"></i> Kelebihan:</h6>
+                <div class="p-3 bg-white rounded border">{{{strengths}}}</div>
+            </div>
+            {{/strengths}}
+
+            {{#improvements}}
+            <div class="mb-4">
+                <h6 class="font-weight-bold text-warning"><i class="fa fa-arrow-up"></i> Hal yang Perlu Ditingkatkan:</h6>
+                <div class="p-3 bg-white rounded border">{{{improvements}}}</div>
+            </div>
+            {{/improvements}}
+
+            <div class="mt-3 pt-3 border-top">
+                <h6 class="font-weight-bold text-secondary"><i class="fa fa-chalkboard-teacher"></i> Catatan Guru:</h6>
+                {{#teachernote}}
+                <div class="p-3 bg-white rounded border">{{{teachernote}}}</div>
+                {{/teachernote}}
+                {{^teachernote}}
+                <div class="p-3 bg-white rounded border text-muted fst-italic">Guru belum memberi catatan.</div>
+                {{/teachernote}}
+            </div>
+            {{/state_done}}
+
+        </div>
+    </div>
+</div>
