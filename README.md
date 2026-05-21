@@ -7,9 +7,10 @@ ReflectAI adalah plugin lokal Moodle yang secara otomatis menghasilkan refleksi 
 - Refleksi otomatis saat siswa mengumpulkan tugas
 - Panel status real-time: belum submit, sedang diproses, selesai, atau error
 - Halaman monitoring guru untuk memantau semua hasil refleksi siswa per assignment
-- Catatan guru — guru dapat menambahkan komentar yang ditampilkan di panel siswa
+- Catatan guru: guru dapat menambahkan komentar yang ditampilkan di panel siswa
 - Deteksi relevansi submission terhadap deskripsi tugas
 - Mendukung berbagai format file: PDF, DOCX, file teks, dan gambar
+- Konfigurasi fleksibel via Admin Settings (URL Ollama, model, timeout, batch size)
 
 ## Persyaratan
 
@@ -31,7 +32,7 @@ ReflectAI adalah plugin lokal Moodle yang secara otomatis menghasilkan refleksi 
 ```
 ollama pull gemma3
 ```
-3. Pastikan Ollama berjalan di `http://localhost:11434`
+3. Pastikan Ollama berjalan dan dapat diakses. URL default `http://localhost:11434`, dapat diubah di **Site Administration → Local plugins → AI Reflection**
 
 ## Setup Composer & PDF Parser
 
@@ -39,6 +40,17 @@ Jalankan perintah berikut di root folder Moodle:
 ```
 composer require smalot/pdfparser
 ```
+
+## Konfigurasi Plugin
+
+Setelah instalasi, buka **Site Administration → Local plugins → AI Reflection** untuk mengatur:
+
+| Setting | Default | Keterangan |
+|---|---|---|
+| Ollama URL | `http://localhost:11434` | URL server Ollama |
+| Nama Model Ollama | `gemma3` | Model yang digunakan untuk analisis |
+| Timeout Request | `120` detik | Batas waktu menunggu respons Ollama. Naikkan jika sering timeout pada file besar |
+| Ukuran Batch Gambar | `2` | Jumlah gambar per request. Turunkan jika timeout saat memproses gambar |
 
 ## Konfigurasi Cron
 
