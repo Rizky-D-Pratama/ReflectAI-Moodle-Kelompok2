@@ -43,7 +43,13 @@ class process_submission_task extends \core\task\adhoc_task {
         }
 
         mtrace('Sending to Ollama...');
-        $client = new \local_ai_reflection\ollama_client('http://localhost:11434', 'gemma3');
+        // Ambil config dari Admin Settings
+        $ollamaurl     = get_config('local_ai_reflection', 'ollamaurl') ?: 'http://localhost:11434';
+        $ollamamodel   = get_config('local_ai_reflection', 'ollamamodel') ?: 'gemma3';
+        $ollamatimeout = (int)(get_config('local_ai_reflection', 'ollamatimeout') ?: 120);
+        $batchsize     = (int)(get_config('local_ai_reflection', 'ollamabatchsize') ?: 2);
+
+        $client = new \local_ai_reflection\ollama_client($ollamaurl, $ollamamodel, $batchsize, $ollamatimeout);
         $result = $client->analyse($payload);
 
         mtrace('Ollama response: ' . ($result['ok'] ? 'ok' : 'failed - ' . ($result['error'] ?? '')));

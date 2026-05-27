@@ -10,15 +10,10 @@ class output_hook {
     public static function before_footer_html_generation(before_footer_html_generation $hook): void {
         global $PAGE, $USER, $OUTPUT;
 
-        error_log('=== FOOTER HOOK FIRED === URL: ' . $_SERVER['REQUEST_URI']);
-
         // CEK hanya jalankan jika berada di modul assignment (view.php)
         if ($PAGE->cm == null || $PAGE->cm->modname !== 'assign') {
-            error_log('== DOING IF CHECK ==');
             return;
         }
-
-        error_log('== IF CHECK PASSED ==');
 
         // Hanya tampilkan di halaman utama assignment (tab Assignment)
         $action = optional_param('action', '', PARAM_ALPHA);
@@ -41,8 +36,6 @@ class output_hook {
         //Ambil data refleksi dari database untuk user yang sedang aktif
         $assignmentid = (int)$PAGE->cm->instance;
         $result = \local_ai_reflection\result_repository::get_result_by_user_and_assignment($USER->id, $assignmentid);
-
-        error_log('== REACHED BEFORE RESULT STATUS CHECK ==');
 
         if (!$result) {
             $data = [
